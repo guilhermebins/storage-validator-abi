@@ -70,6 +70,8 @@ contract StorageValidator is ValidatorBase {
     /*///////////////////////////////////
                     Events
     ///////////////////////////////////*/
+    ///@notice event emitted when the validation is successful
+    event StorageValidator_ValidationSuccess(address student, uint256 score, uint256 courseId, uint64 reward, bool status);
     ///@notice event emitted when the setMessage validation fails
     event StorageValidator_SetMessageFailed(address student, bytes errorEmitted);
     ///@notice error emitted when the getMessage validation fails
@@ -126,6 +128,7 @@ contract StorageValidator is ValidatorBase {
             bytesArg[3] = abi.encodePacked(studentScore);
             bytesArg[4] = abi.encodePacked(false); //only the last exam sends status == true
             
+            emit StorageValidator_ValidationSuccess(msg.sender, studentScore, COURSE_ID, EXAM_REWARD, true);
             return bytesArg;
         }
     }

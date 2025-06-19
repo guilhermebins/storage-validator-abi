@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>StorageValidator</title>
+  </head>
+  <body>
+    <h1>Storage Validator</h1>
+
+    <button id="connectWallet">Conectar Carteira</button>
+    <p id="walletAddress">Carteira: Não conectada</p>
+
+    <input
+      type="text"
+      id="contractAddress"
+      placeholder="Storage Contract Address"
+    />
+    <button id="validateButton">Validate Storage</button>
+
+    <p id="result"></p>
+
+    <script type="module">
+      import { createPublicClient, createWalletClient, http } from "viem";
+      import { avalancheFuji } from "viem/chains";
+      import abi from "./StorageValidatorABI/StorageValidator.json" assert { type: "json" };
+
+      const validatorAddress = "0x5b73C5498c1E3b4dbA84de0F1833c4a029d90519";
+
+      const publicClient = createPublicClient({
+        chain: avalancheFuji,
+        transport: http(),
+      });
+
+      const walletClient = createWalletClient({
+        chain: avalancheFuji,
+        transport: window.ethereum,
+      });
+
+      let currentAccount;
+
+      async function connectWallet() {
+        try {
+          const [account] = await walletClient.requestAddresses();
+          currentAccount = account;
+          document.getElementById("walletAddress").innerText =
+            "Carteira: " + account;
+        } catch (err) {
+          console.error("Erro ao conectar carteira:", err);
+          alert("Erro ao conectar carteira");
+        }
+      }
+
+      async function validateStorage() {
+        try {
+          if (!currentAccount) {
+            alert("Conecte sua carteira primeiro.");
+            return;
+          }
+
+          const storageAddress =
+            document.getElementById("contractAddress").value;
+
+          const hash = await walletClient.writeContract({
+            address: validatorAddress,
+            abi,
+            functionName: "validateStorage",
+            args: [storageAddress],
+            account: currentAccount,
+          });
+
+          document.getElementById("result").innerText = `Tx enviada: ${hash}`;
+        } catch (error) {
+          console.error(error);
+          document.getElementById(
+            "result"
+          ).innerText = `Erro: ${error.message}`;
+        }
+      }
+
+      document
+        .getElementById("connectWallet")
+        .addEventListener("click", connectWallet);
+
+      document
+        .getElementById("validateButton")
+        .addEventListener("click", validateStorage);
+    </script>
+  </body>
+</html>
